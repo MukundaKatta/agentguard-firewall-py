@@ -11,7 +11,7 @@ Python port of [@mukundakatta/agentguard](https://github.com/MukundaKatta/agentg
 ## Install
 
 ```bash
-pip install agentguard-py
+pip install agentguard-firewall
 ```
 
 ## Usage
