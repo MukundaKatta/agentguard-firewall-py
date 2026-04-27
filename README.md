@@ -1,7 +1,7 @@
-# agentguard-py
+# agentguard-firewall
 
-[![PyPI](https://img.shields.io/pypi/v/agentguard-py.svg)](https://pypi.org/project/agentguard-py/)
-[![Python](https://img.shields.io/pypi/pyversions/agentguard-py.svg)](https://pypi.org/project/agentguard-py/)
+[![PyPI](https://img.shields.io/pypi/v/agentguard-firewall.svg)](https://pypi.org/project/agentguard-firewall/)
+[![Python](https://img.shields.io/pypi/pyversions/agentguard-firewall.svg)](https://pypi.org/project/agentguard-firewall/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **Network egress firewall for AI agents.** Declarative allow/deny list of hosts your agent tools may reach. Zero runtime dependencies.
