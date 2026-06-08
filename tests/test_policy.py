@@ -62,12 +62,14 @@ def test_check_global_wildcard():
 
 
 def test_check_deny_wins_over_allow():
-    p = policy({
-        "network": {
-            "allow": ["*.openai.com"],
-            "deny": ["billing.openai.com"],
+    p = policy(
+        {
+            "network": {
+                "allow": ["*.openai.com"],
+                "deny": ["billing.openai.com"],
+            }
         }
-    })
+    )
     assert check(p, "https://api.openai.com/").action == "allow"
     blocked = check(p, "https://billing.openai.com/charge")
     assert blocked.action == "deny"
@@ -117,3 +119,81 @@ def test_policy_camelcase_max_requests_accepted():
 def test_policy_snake_case_max_requests_accepted():
     p = policy({"budget": {"max_requests": 7}})
     assert p.budget.max_requests == 7
+
+
+def test_policy_negative_max_requests_raises():
+    with pytest.raises(TypeError):
+        policy({"budget": {"max_requests": -1}})
+
+
+def test_policy_non_int_max_requests_raises():
+    with pytest.raises(TypeError):
+        policy({"budget": {"max_requests": "5"}})  # type: ignore[dict-item]
+
+
+def test_policy_empty_spec_has_no_sections():
+    p = policy({})
+    assert p.network is None
+    assert p.budget is None
+    assert p.violations == "throw"
+
+
+def test_policy_non_string_pattern_raises():
+    with pytest.raises(TypeError):
+        policy({"network": {"allow": [123]}})  # type: ignore[list-item]
+
+
+def test_policy_empty_string_pattern_raises():
+    with pytest.raises(TypeError):
+        policy({"network": {"allow": [""]}})
+
+
+def test_policy_network_not_mapping_raises():
+    with pytest.raises(TypeError):
+        policy({"network": ["api.openai.com"]})  # type: ignore[dict-item]
+
+
+def test_policy_methods_not_list_raises():
+    with pytest.raises(TypeError):
+        policy({"network": {"methods": "GET"}})  # type: ignore[dict-item]
+
+
+def test_check_empty_allowlist_denies_everything():
+    # An explicit empty allowlist is a deny-all.
+    p = policy({"network": {"allow": []}})
+    d = check(p, "https://anywhere.example/")
+    assert d.action == "deny"
+    assert d.reason == "not_in_allowlist"
+
+
+def test_check_no_network_allows_everything():
+    p = policy({})
+    assert check(p, "https://anywhere.example/").action == "allow"
+
+
+def test_check_deny_only_allows_non_denied():
+    p = policy({"network": {"deny": ["bad.example.com"]}})
+    assert check(p, "https://ok.example.com/").action == "allow"
+    blocked = check(p, "https://bad.example.com/")
+    assert blocked.action == "deny"
+    assert blocked.reason == "denylist_match"
+
+
+def test_check_host_is_case_insensitive():
+    p = policy({"network": {"allow": ["api.openai.com"]}})
+    assert check(p, "https://API.OpenAI.COM/v1").action == "allow"
+
+
+def test_check_ignores_port_and_credentials():
+    p = policy({"network": {"allow": ["api.openai.com"]}})
+    assert check(p, "https://user:pass@api.openai.com:443/v1").action == "allow"
+
+
+def test_decision_is_dict_unpackable():
+    p = policy({"network": {"allow": ["api.openai.com"]}})
+    allowed = dict(check(p, "https://api.openai.com/"))
+    assert allowed == {"action": "allow"}
+    denied = dict(check(p, "https://evil.example/"))
+    assert denied["action"] == "deny"
+    assert denied["reason"] == "not_in_allowlist"
+    assert denied["detail"] == "evil.example"

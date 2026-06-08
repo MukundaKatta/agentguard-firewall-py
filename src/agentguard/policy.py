@@ -17,8 +17,8 @@ Patterns supported in ``network.allow`` / ``network.deny``:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, List, Mapping, Optional, Union
+from dataclasses import dataclass
+from typing import Any, Mapping, Optional, Union
 from urllib.parse import urlsplit
 
 
@@ -90,8 +90,16 @@ def policy(spec: Mapping[str, Any]) -> Policy:
 def _normalize_network(net: Mapping[str, Any]) -> _NetworkPolicy:
     if not isinstance(net, Mapping):
         raise TypeError("policy.network must be a mapping")
-    allow = _to_pattern_list(net.get("allow"), "network.allow") if net.get("allow") is not None else None
-    deny = _to_pattern_list(net.get("deny"), "network.deny") if net.get("deny") is not None else None
+    allow = (
+        _to_pattern_list(net.get("allow"), "network.allow")
+        if net.get("allow") is not None
+        else None
+    )
+    deny = (
+        _to_pattern_list(net.get("deny"), "network.deny")
+        if net.get("deny") is not None
+        else None
+    )
     methods = None
     if net.get("methods") is not None:
         m = net["methods"]

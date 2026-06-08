@@ -17,7 +17,14 @@ class PolicyViolation(Exception):
 
     def __init__(self, reason: str, detail: str, url: str, method: str) -> None:
         super().__init__(
-            "agentguard: blocked " + method + " " + url + " -- " + reason + ": " + detail
+            "agentguard: blocked "
+            + method
+            + " "
+            + url
+            + " -- "
+            + reason
+            + ": "
+            + detail
         )
         self.name = "PolicyViolation"
         self.reason = reason
